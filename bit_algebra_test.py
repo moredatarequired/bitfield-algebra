@@ -84,4 +84,8 @@ def test_xor_one_inverts():
 
 
 def test_xor_symbolic_simplifies():
-    pass
+    assert x ^ x == f
+    assert x ^ ~x == t
+    assert ~x ^ x == t
+    assert (x & y) ^ (y & x) == f
+    # Complex!!  (x & y) ^ (~x & ~y) == ~(x ^ y)

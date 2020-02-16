@@ -1,3 +1,4 @@
+from collections import Counter
 from dataclasses import dataclass
 from typing import Tuple, Union
 
@@ -22,28 +23,36 @@ class Bit(Node):
         return Not(self)
 
     def __and__(self, other):
-        if self.value == 0 or other.value == 0:
+        if self.value == 0:
             return Bit(0)
         if self.value == 1:
             return other
-        if other.value == 1:
-            return self
-        if self == other:
-            return self
+        if isinstance(other, Bit):
+            if other.value == 0:
+                return Bit(0)
+            if other.value == 1 or self == other:
+                return self
         if isinstance(other, Not) and self == other.child:
             return Bit(0)
         return And.new(self, other)
 
+    def __rand__(self, other):
+        return self & other
+
     def __xor__(self, other):
         if self.value == 0:
             return other
-        if other.value == 0:
-            return self
         if self.value == 1:
             return ~other
-        if other.value == 1:
-            return ~self
-        raise NotImplementedError
+        if isinstance(other, Bit):
+            if other.value == 0:
+                return self
+            if other.value == 1:
+                return ~self
+        return Xor.new(self, other)
+
+    def __rxor__(self, other):
+        return self ^ other
 
 
 @dataclass(frozen=True)
@@ -65,13 +74,8 @@ class Not(Node):
             return Bit(0)
         return And.new(self, other)
 
-    @property
-    def value(self):
-        if self.child.value in (0, 1):
-            return not self.child.value
-        if isinstance(self.child.value, str):
-            return str(self)
-        raise NotImplementedError
+    def __rand__(self, other):
+        return self & other
 
 
 @dataclass(frozen=True)
@@ -114,3 +118,51 @@ class And(Node):
         if isinstance(other, Not) and self == other.child:
             return Bit(0)
         return And.new(other, *self.children)
+
+    def __rand__(self, other):
+        return self & other
+
+    def __xor__(self, other):
+        return Xor.new(self, other)
+
+    def __rxor__(self, other):
+        return self ^ other
+
+
+@dataclass(frozen=True)
+class Xor(Node):
+    """Binary XOR, represented with `^`."""
+
+    children: Tuple[Node]
+
+    @staticmethod
+    def new(*children):
+        print("new xor", children)
+        # Flatten any direct children that are also XORs of something.
+        new_children = Counter()
+        for child in children:
+            if isinstance(child, Xor):
+                new_children.update(child.children)
+            else:
+                new_children[child] += 1
+
+        # Children that match each other cancel out, so we can keep just the count % 2.
+        new_children = [child for child, count in new_children.items() if count % 2]
+        print(new_children)
+        if not new_children:
+            return Bit(0)
+
+        # Children that match inverses of each other act invert the whole set.
+        nots = set(child.child for child in new_children if isinstance(child, Not))
+        others = set(child for child in new_children if not isinstance(child, Not))
+        invert = sum(1 for n in nots if n in others) % 2
+        remaining = [~n for n in nots - others] + [o for o in others - nots]
+
+        if invert:
+            if not remaining:
+                return Bit(1)
+            if len(remaining) == 1:
+                return ~remaining[0]
+            return Not(Xor(children=tuple(sorted(remaining))))
+        return Xor(children=tuple(sorted(remaining)))
+
