@@ -1,39 +1,30 @@
-import unittest
-
 from bit_algebra import Bit
 
 
-class BitAlgebraTest(unittest.TestCase):
-    def test_bits_one_equals_one(self):
-        a, b = Bit(1), Bit(1)
-        self.assertEqual(a, b)
-
-    def test_bits_zero_equals_zero(self):
-        a, b = Bit(0), Bit(0)
-        self.assertEqual(a, b)
-
-    def test_bits_zero_ne_one(self):
-        a, b = Bit(0), Bit(1)
-        self.assertNotEqual(a, b)
-
-    def test_same_names_equal(self):
-        a, b = Bit("x"), Bit("x")
-        self.assertEqual(a, b)
-
-    def test_different_names_not_equal(self):
-        a, b = Bit("x"), Bit("y")
-        self.assertNotEqual(a, b)
-
-    def test_not_inverts_bits(self):
-        x, y = Bit(0), Bit(1)
-        self.assertEqual(x, ~y)
-        self.assertEqual(~x, y)
-        self.assertEqual(x.value, 0)
-        self.assertEqual((~x).value, 1)
+def test_bits_one_equals_one():
+    assert Bit(1) == Bit(1)
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_bits_zero_equals_zero():
+    assert Bit(0) == Bit(0)
 
 
-import unittest
+def test_bits_zero_ne_one():
+    assert Bit(0) != Bit(1)
+    assert Bit(1) != Bit(0)
+
+
+def test_same_names_equal():
+    assert Bit("x") == Bit("x")
+
+
+def test_different_names_not_equal():
+    assert Bit("x") != Bit("y")
+
+
+def test_not_inverts_bits():
+    t, f = Bit(1), Bit(0)
+    assert t == ~f
+    assert ~t == f
+    assert t == ~~t
+    assert ~t != ~f
