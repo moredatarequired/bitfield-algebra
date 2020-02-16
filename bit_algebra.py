@@ -39,6 +39,10 @@ class Bit(Node):
             return other
         if other.value == 0:
             return self
+        if self.value == 1:
+            return ~other
+        if other.value == 1:
+            return ~self
         raise NotImplementedError
 
 

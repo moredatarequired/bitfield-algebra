@@ -76,3 +76,10 @@ def test_xor_zero_simplifies():
     assert f ^ f == f
     assert x ^ f == x
     assert f ^ x == x
+
+
+def test_xor_one_inverts():
+    t, f, x = Bit(1), Bit(0), Bit("x")
+    assert t ^ t == f
+    assert x ^ t == ~x
+    assert t ^ x == ~x
