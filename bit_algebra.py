@@ -137,3 +137,12 @@ class Xor(BitExpr):
 
         return Xor(children=tuple(sorted(new_children)))
 
+    def __invert__(self) -> BitExpr:
+        return Xor.new(Bit(1), *self.children)
+
+    def __and__(self, other: BitExpr) -> BitExpr:
+        if isinstance(other, Bit) or isinstance(other, And):
+            return other & self
+
+        assert isinstance(other, Xor)
+        return Xor.new(*[a & b for a in self.children for b in other.children])
