@@ -124,7 +124,7 @@ class Xor(BitExpr):
         for child in children:
             if isinstance(child, Xor):
                 child_counts.update(child.children)
-            else:
+            elif child != Bit(0):
                 child_counts[child] += 1
 
         # Children that match each other cancel out, so we can keep just the count % 2.
@@ -143,6 +143,9 @@ class Xor(BitExpr):
     def __and__(self, other: BitExpr) -> BitExpr:
         if isinstance(other, Bit) or isinstance(other, And):
             return other & self
-
-        assert isinstance(other, Xor)
         return Xor.new(*[a & b for a in self.children for b in other.children])
+
+    def __xor__(self, other: BitExpr) -> BitExpr:
+        if isinstance(other, Bit) or isinstance(other, And):
+            return other ^ self
+        return Xor.new(*(self.children + other.children))

@@ -89,3 +89,5 @@ def test_xor_symbolic_simplifies():
     assert ~x ^ x == t
     assert (x & y) ^ (y & x) == f
     assert (x & y) ^ (~x & ~y) == ~(x ^ y)
+    assert (x ^ y) ^ (x ^ y) == f
+    assert (x ^ y) ^ ~(x & y) == ~x & ~y
