@@ -82,7 +82,22 @@ class And(Node):
 
     @staticmethod
     def new(*children):
-        return And(children=tuple(sorted(set(children))))
+        # Flatten any direct children that are also ANDs of something.
+        new_children = set()
+        for child in children:
+            if isinstance(child, And):
+                for grandchild in child.children:
+                    new_children.add(grandchild)
+            else:
+                new_children.add(child)
+
+        # If any children negate each other, the result is 0.
+        for child in new_children:
+            if isinstance(child, Not) and child.child in new_children:
+                return Bit(0)
+
+        # Otherwise aggregate all children that are being ANDed together.
+        return And(children=tuple(sorted(new_children)))
 
     def __str__(self):
         return "&".join(str(n) for n in self.children)
@@ -98,4 +113,4 @@ class And(Node):
             return And.new(*(self.children + other.children))
         if isinstance(other, Not) and self == other.child:
             return Bit(0)
-        raise NotImplementedError
+        return And.new(other, *self.children)

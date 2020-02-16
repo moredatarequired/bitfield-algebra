@@ -59,6 +59,7 @@ def test_and_symbolic_simplifies():
     assert (x & y) & (y & x) == x & y
     assert str(x & x) == "x"
     assert x & y & x == x & y
+    assert x & y & (z & y) & x == x & y & z
 
 
 def test_and_not_simplifies():
