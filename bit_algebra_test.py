@@ -38,3 +38,24 @@ def test_and1_simplifies():
     assert t & t == t
     assert t & x == x
     assert x & t == x
+
+
+def test_and0_simplifies():
+    f, x = Bit(0), Bit("x")
+    assert f & f == f
+    assert f & x == f
+    assert x & f == f
+
+
+def test_and_symbolic():
+    x, y = Bit("x"), Bit("y")
+    assert str(x & y) == "x&y"
+    assert x & y == y & x
+
+
+def test_and_symbolic_simplifies():
+    x, y = Bit("x"), Bit("y")
+    assert x & x == x
+    assert str(x & x) == "x"
+    assert x & y & x == x & y
+

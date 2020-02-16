@@ -6,7 +6,7 @@ authors = ["Hugh Wimberly <hugh.wimberly@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.3.5"
