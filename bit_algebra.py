@@ -6,6 +6,9 @@ class Bit:
         """Value should be 0, 1, or a unique name."""
         self.value = value
 
+    def copy(self):
+        return Bit(self.value)
+
     def __repr__(self):
         return f"Bit({self.value})"
 
@@ -20,7 +23,16 @@ class Bit:
             return Bit(1)
         if self.value == 1:
             return Bit(0)
-        return Not(Bit(self.value[:]))
+        return Not(self.copy())
+
+    def __and__(self, other):
+        if self.value == 0 or other.value == 0:
+            return Bit(0)
+        if self.value == 1:
+            return other.copy()
+        if other.value == 1:
+            return self.copy()
+        raise NotImplementedError("In a moment, dude!")
 
 
 class Not:

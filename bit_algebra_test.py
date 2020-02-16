@@ -27,4 +27,14 @@ def test_not_inverts_bits():
     assert t == ~f
     assert ~t == f
     assert t == ~~t
+    assert repr(~~t) == repr(t)
     assert ~t != ~f
+
+
+def test_and1_simplifies():
+    t, f, x = Bit(1), Bit(0), Bit("x")
+    assert t & f == f
+    assert f & t == f
+    assert t & t == t
+    assert t & x == x
+    assert x & t == x
