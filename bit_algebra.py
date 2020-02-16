@@ -3,43 +3,43 @@ from dataclasses import dataclass
 from typing import Tuple, Union
 
 
-class Node:
+class BitExpr:
     def __lt__(self, other):
         return repr(self) < repr(other)
 
 
 @dataclass(frozen=True)
-class Bit(Node):
+class Bit(BitExpr):
     value: Union[bool, str] = 0  # Value should be 0, 1, or a unique name.
 
     def __str__(self):
         return str(self.value)
 
-    def __invert__(self):
+    def __invert__(self) -> BitExpr:
         if self.value == 0:
             return Bit(1)
         if self.value == 1:
             return Bit(0)
-        return Not(self)
+        return Xor.new(Bit(1), self)
 
-    def __and__(self, other):
+    def __and__(self, other: BitExpr) -> BitExpr:
         if self.value == 0:
-            return Bit(0)
+            return self
         if self.value == 1:
             return other
         if isinstance(other, Bit):
             if other.value == 0:
-                return Bit(0)
+                return other
             if other.value == 1 or self == other:
                 return self
-        if isinstance(other, Not) and self == other.child:
-            return Bit(0)
+        if isinstance(other, Xor):
+            return Xor.new(*[self & c for c in other.children])
         return And.new(self, other)
 
-    def __rand__(self, other):
+    def __rand__(self, other: BitExpr) -> BitExpr:
         return self & other
 
-    def __xor__(self, other):
+    def __xor__(self, other: BitExpr) -> BitExpr:
         if self.value == 0:
             return other
         if self.value == 1:
@@ -51,118 +51,89 @@ class Bit(Node):
                 return ~self
         return Xor.new(self, other)
 
-    def __rxor__(self, other):
+    def __rxor__(self, other: BitExpr) -> BitExpr:
         return self ^ other
 
 
 @dataclass(frozen=True)
-class Not(Node):
-    """Unitary NOT, represented with `~` rather than `!` or `not`."""
-
-    child: Node
-
-    def __str__(self):
-        return f"~({str(self.child)})"
-
-    def __invert__(self):
-        return self.child
-
-    def __and__(self, other):
-        if isinstance(other, Bit):
-            return other & self
-        if self.child == other:
-            return Bit(0)
-        return And.new(self, other)
-
-    def __rand__(self, other):
-        return self & other
-
-
-@dataclass(frozen=True)
-class And(Node):
+class And(BitExpr):
     """Binary AND, represented with `&`."""
 
-    children: Tuple[Node]
-
-    @staticmethod
-    def new(*children):
-        # Flatten any direct children that are also ANDs of something.
-        new_children = set()
-        for child in children:
-            if isinstance(child, And):
-                for grandchild in child.children:
-                    new_children.add(grandchild)
-            else:
-                new_children.add(child)
-
-        # If any children negate each other, the result is 0.
-        for child in new_children:
-            if isinstance(child, Not) and child.child in new_children:
-                return Bit(0)
-
-        # Otherwise aggregate all children that are being ANDed together.
-        return And(children=tuple(sorted(new_children)))
+    children: Tuple[BitExpr]
 
     def __str__(self):
         return "&".join(str(n) for n in self.children)
 
-    def __invert__(self):
-        # Todo: push down (and make ORs instead)?
-        return Not(self)
+    @staticmethod
+    def new(*children) -> BitExpr:
+        # Flatten any direct children that are also ANDs of something.
+        new_children = set()
+        for child in children:
+            if isinstance(child, And):
+                new_children.update(child.children)
+            elif isinstance(child, Bit):
+                if child.value == 0:
+                    return Bit(0)
+                if child.value != 1:
+                    new_children.add(child)
+            else:
+                raise NotImplementedError
+
+        assert Bit(0) not in new_children and Bit(1) not in new_children
+
+        if len(new_children) == 1:
+            return new_children.pop()
+
+        # Otherwise aggregate all children that are being ANDed together.
+        return And(children=tuple(sorted(new_children)))
+
+    def __invert__(self) -> BitExpr:
+        return Xor.new(Bit(1), self)
 
     def __and__(self, other):
-        if other in self.children:
-            return self
+        if isinstance(other, Bit):
+            return other & self
         if isinstance(other, And):
             return And.new(*(self.children + other.children))
-        if isinstance(other, Not) and self == other.child:
-            return Bit(0)
-        return And.new(other, *self.children)
+        if isinstance(other, Xor):
+            return Xor.new(*[c & self for c in other.children])
+        raise NotImplementedError
 
-    def __rand__(self, other):
+    def __rand__(self, other: BitExpr) -> BitExpr:
         return self & other
 
     def __xor__(self, other):
         return Xor.new(self, other)
 
-    def __rxor__(self, other):
+    def __rxor__(self, other: BitExpr) -> BitExpr:
         return self ^ other
 
 
 @dataclass(frozen=True)
-class Xor(Node):
+class Xor(BitExpr):
     """Binary XOR, represented with `^`."""
 
-    children: Tuple[Node]
+    children: Tuple[BitExpr]
+
+    def __str__(self) -> str:
+        return "^".join(str(c) for c in self.children)
 
     @staticmethod
     def new(*children):
-        print("new xor", children)
-        # Flatten any direct children that are also XORs of something.
-        new_children = Counter()
+        child_counts = Counter()
         for child in children:
             if isinstance(child, Xor):
-                new_children.update(child.children)
+                child_counts.update(child.children)
             else:
-                new_children[child] += 1
+                child_counts[child] += 1
 
         # Children that match each other cancel out, so we can keep just the count % 2.
-        new_children = [child for child, count in new_children.items() if count % 2]
-        print(new_children)
+        new_children = [child for child, count in child_counts.items() if count % 2]
+
         if not new_children:
             return Bit(0)
+        if len(new_children) == 1:
+            return new_children[0]
 
-        # Children that match inverses of each other act invert the whole set.
-        nots = set(child.child for child in new_children if isinstance(child, Not))
-        others = set(child for child in new_children if not isinstance(child, Not))
-        invert = sum(1 for n in nots if n in others) % 2
-        remaining = [~n for n in nots - others] + [o for o in others - nots]
-
-        if invert:
-            if not remaining:
-                return Bit(1)
-            if len(remaining) == 1:
-                return ~remaining[0]
-            return Not(Xor(children=tuple(sorted(remaining))))
-        return Xor(children=tuple(sorted(remaining)))
+        return Xor(children=tuple(sorted(new_children)))
 
