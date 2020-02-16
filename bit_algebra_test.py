@@ -56,6 +56,15 @@ def test_and_symbolic():
 def test_and_symbolic_simplifies():
     x, y = Bit("x"), Bit("y")
     assert x & x == x
+    assert (x & y) & (y & x) == x & y
     assert str(x & x) == "x"
     assert x & y & x == x & y
+
+
+def test_and_not_simplifies():
+    x, y, f = Bit("x"), Bit("y"), Bit(0)
+    assert x & ~x == f
+    assert ~x & x == f
+    assert ~(x & y) & (y & x) == f
+    assert (x & y) & ~(y & x) == f
 
