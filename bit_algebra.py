@@ -34,6 +34,13 @@ class Bit(Node):
             return Bit(0)
         return And.new(self, other)
 
+    def __xor__(self, other):
+        if self.value == 0:
+            return other
+        if other.value == 0:
+            return self
+        raise NotImplementedError
+
 
 @dataclass(frozen=True)
 class Not(Node):

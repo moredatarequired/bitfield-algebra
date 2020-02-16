@@ -68,3 +68,11 @@ def test_and_not_simplifies():
     assert ~(x & y) & (y & x) == f
     assert (x & y) & ~(y & x) == f
 
+
+def test_xor_zero_simplifies():
+    t, f, x = Bit(1), Bit(0), Bit("x")
+    assert t ^ f == t
+    assert f ^ t == t
+    assert f ^ f == f
+    assert x ^ f == x
+    assert f ^ x == x
