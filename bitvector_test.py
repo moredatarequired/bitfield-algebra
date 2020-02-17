@@ -58,3 +58,7 @@ def test_supports_lshift():
 def test_supports_rshift():
     z = x >> 5
     assert str(z) == "x5 x6 x7 0 0 0 0 0"
+
+
+def test_compound_operations():
+    assert x >> 3 & x << 5 == zeros
