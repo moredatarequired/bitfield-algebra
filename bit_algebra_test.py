@@ -91,3 +91,15 @@ def test_xor_symbolic_simplifies():
     assert (x & y) ^ (~x & ~y) == ~(x ^ y)
     assert (x ^ y) ^ (x ^ y) == f
     assert (x ^ y) ^ ~(x & y) == ~x & ~y
+
+
+def test_operand_commutativity():
+    assert ~(x & y) == t ^ (x & y)
+    assert ~(x ^ y) == t ^ x ^ y
+    assert z & (x ^ y) == z & x ^ z & y
+
+
+def test_operand_associativity():
+    assert z & (x & y) == (x & y) & z
+    assert z ^ (x & y) == (x & y) ^ z
+    assert z ^ (x ^ y) == (z ^ x) ^ y
