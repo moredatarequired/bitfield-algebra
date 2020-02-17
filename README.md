@@ -6,8 +6,8 @@ This isn't a fully built out system; it's just a toy I developed to help me
 with some cryptoanalysis when I found myself making too many mistakes while
 working things out on paper.
 
-In particular, the idea is to have an operation, such as `y ^= (y << 15) & MASK`,
-and be able to examine the result symbolically, i.e.
+In particular, the idea is to have an operation, such as `y ^= (y << 3) & MASK`,
+and be able to examine the result symbolically, for example:
 
 ```python3
 y, m = BitVector.new("y"), BitVector.new("m")
@@ -28,7 +28,7 @@ print(z ^ z << 3 & m)
 
 Prints `y0 y1 y2 y3 y4 y5 m3&m6&y0^y6 m4&m7&y1^y7`
 
-Now we can see that we've recovered come the original bits of `y`, but mucked up
+Now we can see that we've recovered some the original bits of `y`, but mucked up
 the high order bits. If we imagine we're trying to reverse the operation from
 above, now we have an idea that we should mask out the three MSB of `z << 3 & m`
 before the XOR; if we do that,
