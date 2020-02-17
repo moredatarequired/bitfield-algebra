@@ -6,8 +6,8 @@ This isn't a fully built out system; it's just a toy I developed to help me
 with some cryptoanalysis when I found myself making too many mistakes while
 working things out on paper.
 
-In particular, the idea is to have an operation, such as `y ^= (y << 15) & MASK`,
-and be able to examine the result symbolically, i.e.
+In particular, the idea is to have an operation, such as `y ^= (y << 3) & MASK`,
+and be able to examine the result symbolically, for example:
 
 ```python3
 y, m = BitVector.new("y"), BitVector.new("m")
