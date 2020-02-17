@@ -34,6 +34,18 @@ def test_supports_bitwise_not():
 def test_supports_xor():
     assert x ^ x == zeros
     assert x ^ ~x == ones
+    assert str(x ^ y) == "x0^y0 x1^y1 x2^y2 x3^y3 x4^y4 x5^y5 x6^y6 x7^y7"
+
+
+def test_supports_and():
+    assert x & x == x
+    assert x & ~x == zeros
+    assert str(x & y) == "x0&y0 x1&y1 x2&y2 x3&y3 x4&y4 x5&y5 x6&y6 x7&y7"
+
+
+def test_supports_or():
+    assert x | x == x
+    assert x | ~x == ones
 
 
 def test_supports_lshift():

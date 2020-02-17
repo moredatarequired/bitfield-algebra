@@ -36,6 +36,12 @@ class BitVector:
     def __invert__(self):
         return BitVector(tuple(~b for b in self.bits))
 
+    def __and__(self, other):
+        return BitVector(tuple(s & o for s, o in zip(self, other)))
+
+    def __or__(self, other):
+        return BitVector(tuple(s | o for s, o in zip(self, other)))
+
     def __xor__(self, other):
         return BitVector(tuple(s ^ o for s, o in zip(self, other)))
 
