@@ -28,7 +28,7 @@ print(z ^ z << 3 & m)
 
 Prints `y0 y1 y2 y3 y4 y5 m3&m6&y0^y6 m4&m7&y1^y7`
 
-Now we can see that we've recovered come the original bits of `y`, but mucked up
+Now we can see that we've recovered some the original bits of `y`, but mucked up
 the high order bits. If we imagine we're trying to reverse the operation from
 above, now we have an idea that we should mask out the three MSB of `z << 3 & m`
 before the XOR; if we do that,
