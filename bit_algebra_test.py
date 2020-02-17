@@ -1,52 +1,47 @@
 from bit_algebra import Bit
+from hypothesis import given
+from hypothesis.strategies import booleans, characters, sampled_from
 
 
 t = Bit(1)
 f = Bit(0)
 x, y, z, w = [Bit(v) for v in "xyzw"]
 
-
-def test_bits_one_equals_one():
-    assert t == Bit(1)
+standard_samples = sampled_from([0, 1, "a", "b"])
 
 
-def test_bits_zero_equals_zero():
-    assert f == Bit(0)
+@given(standard_samples)
+def test_identity_function(b):
+    assert Bit(b) == Bit(b)
 
 
-def test_bits_zero_ne_one():
-    assert Bit(0) != Bit(1)
-    assert Bit(1) != Bit(0)
+@given(a=standard_samples, b=standard_samples)
+def test_boolean_equality(a, b):
+    assert (a == b) == (Bit(a) == Bit(b))
 
 
-def test_same_names_equal():
-    assert x == Bit("x")
+@given(c=characters(), b=booleans())
+def test_known_ne_unknown(c, b):
+    assert Bit(c) != Bit(b)
 
 
-def test_different_names_not_equal():
-    assert x != y
+@given(standard_samples)
+def test_boolean_not_on_known(b):
+    B = Bit(b)
+    assert B != ~B
+    assert B == ~~B
+    assert repr(B) == repr(~~B)
 
 
-def test_not_inverts_bits():
-    assert t == ~f
-    assert ~t == f
-    assert t == ~~t
-    assert repr(~~t) == repr(t)
-    assert ~t != ~f
+@given(a=booleans(), b=booleans())
+def test_and_with_known(a, b):
+    assert Bit(a & b) == Bit(a) & Bit(b)
 
 
-def test_and1_simplifies():
-    assert t & f == f
-    assert f & t == f
-    assert t & t == t
-    assert t & x == x
-    assert x & t == x
-
-
-def test_and0_simplifies():
-    assert f & f == f
-    assert f & x == f
-    assert x & f == f
+@given(b=booleans(), c=standard_samples)
+def test_and_with_known_and_unknown(b, c):
+    assert Bit(b) & Bit(c) == Bit(c) if b else Bit(0)
+    assert Bit(c) & Bit(b) == Bit(c) if b else Bit(0)
 
 
 def test_and_symbolic():
@@ -65,28 +60,27 @@ def test_and_symbolic_simplifies():
 def test_and_not_simplifies():
     assert x & ~x == f
     assert ~x & x == f
+    assert ~x & ~x == ~x
     assert ~(x & y) & (y & x) == f
     assert (x & y) & ~(y & x) == f
 
 
-def test_xor_zero_simplifies():
-    assert t ^ f == t
-    assert f ^ t == t
-    assert f ^ f == f
-    assert x ^ f == x
-    assert f ^ x == x
+@given(a=booleans(), b=booleans())
+def test_xor_with_known(a, b):
+    assert Bit(a ^ b) == Bit(a) ^ Bit(b)
 
 
-def test_xor_one_inverts():
-    assert t ^ t == f
-    assert x ^ t == ~x
-    assert t ^ x == ~x
+@given(b=booleans(), c=standard_samples)
+def test_xor_with_known_and_unknown(b, c):
+    assert Bit(b) ^ Bit(c) == ~Bit(c) if b else Bit(c)
+    assert Bit(c) ^ Bit(b) == ~Bit(c) if b else Bit(c)
 
 
 def test_xor_symbolic_simplifies():
     assert x ^ x == f
     assert x ^ ~x == t
     assert ~x ^ x == t
+    assert ~x ^ ~x == f
     assert (x & y) ^ (y & x) == f
     assert (x & y) ^ (~x & ~y) == ~(x ^ y)
     assert (x ^ y) ^ (x ^ y) == f
@@ -105,26 +99,22 @@ def test_operand_associativity():
     assert z ^ (x ^ y) == (z ^ x) ^ y
 
 
-def test_or1_is_true():
-    assert t | t == t
-    assert t | f == t
-    assert f | t == t
-    assert t | x == t
-    assert x | t == t
+@given(a=booleans(), b=booleans())
+def test_or_with_known(a, b):
+    assert Bit(a | b) == Bit(a) | Bit(b)
 
 
-def test_or0_is_same():
-    assert f | f == f
-    assert t | f == t
-    assert f | t == t
-    assert f | x == x
-    assert x | f == x
+@given(b=booleans(), c=standard_samples)
+def test_or_with_known_and_unknown(b, c):
+    assert Bit(b) | Bit(c) == Bit(1) if b else Bit(c)
+    assert Bit(c) | Bit(b) == Bit(1) if b else Bit(c)
 
 
 def test_or_symbolic_simplifies():
     assert x | x == x
     assert x | ~x == t
     assert ~x | x == t
+    assert ~x | ~x == ~x
     assert ~x | ~y == ~(x & y)
     assert x | (y & z) == (x | y) & (x | z)
     assert (x & y) | (z & x) == (z | x & y) & (x & (y | x))
