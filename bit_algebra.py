@@ -54,6 +54,21 @@ class Bit(BitExpr):
     def __rxor__(self, other: BitExpr) -> BitExpr:
         return self ^ other
 
+    def __or__(self, other: BitExpr) -> BitExpr:
+        if self.value == 0:
+            return other
+        if self.value == 1:
+            return self
+        if isinstance(other, Bit):
+            if other.value == 0:
+                return self
+            if other.value == 1:
+                return other
+        return Xor.new(self, other, self & other)
+
+    def __ror__(self, other: BitExpr) -> BitExpr:
+        return self | other
+
 
 @dataclass(frozen=True)
 class And(BitExpr):
@@ -149,3 +164,8 @@ class Xor(BitExpr):
         if isinstance(other, Bit) or isinstance(other, And):
             return other ^ self
         return Xor.new(*(self.children + other.children))
+
+    def __or__(self, other: BitExpr) -> BitExpr:
+        if isinstance(other, Bit) or isinstance(other, And):
+            return other | self
+        return Xor.new(self, other, self & other)

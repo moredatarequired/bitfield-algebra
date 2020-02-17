@@ -94,7 +94,7 @@ def test_xor_symbolic_simplifies():
 
 
 def test_operand_commutativity():
-    assert ~(x & y) == t ^ (x & y)
+    assert ~(x & y) == ~x | ~y
     assert ~(x ^ y) == t ^ x ^ y
     assert z & (x ^ y) == z & x ^ z & y
 
@@ -103,3 +103,27 @@ def test_operand_associativity():
     assert z & (x & y) == (x & y) & z
     assert z ^ (x & y) == (x & y) ^ z
     assert z ^ (x ^ y) == (z ^ x) ^ y
+
+
+def test_or1_is_true():
+    assert t | t == t
+    assert t | f == t
+    assert f | t == t
+    assert t | x == t
+    assert x | t == t
+
+
+def test_or0_is_same():
+    assert f | f == f
+    assert t | f == t
+    assert f | t == t
+    assert f | x == x
+    assert x | f == x
+
+
+def test_or_symbolic_simplifies():
+    assert x | x == x
+    assert x | ~x == t
+    assert ~x | x == t
+    assert ~x | ~y == ~(x & y)
+    assert x | (y & z) == (x | y) & (x | z)
