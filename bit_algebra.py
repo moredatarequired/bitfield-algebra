@@ -117,11 +117,19 @@ class And(BitExpr):
     def __rand__(self, other: BitExpr) -> BitExpr:
         return self & other
 
-    def __xor__(self, other):
+    def __xor__(self, other: BitExpr) -> BitExpr:
         return Xor.new(self, other)
 
     def __rxor__(self, other: BitExpr) -> BitExpr:
         return self ^ other
+
+    def __or__(self, other: BitExpr) -> BitExpr:
+        if isinstance(other, Bit):
+            return other | self
+        return Xor.new(self, other, self & other)
+
+    def __ror__(self, other: BitExpr) -> BitExpr:
+        return self | other
 
 
 @dataclass(frozen=True)

@@ -127,3 +127,4 @@ def test_or_symbolic_simplifies():
     assert ~x | x == t
     assert ~x | ~y == ~(x & y)
     assert x | (y & z) == (x | y) & (x | z)
+    assert (x & y) | (z & x) == (z | x & y) & (x & (y | x))
