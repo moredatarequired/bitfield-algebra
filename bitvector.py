@@ -12,7 +12,7 @@ class BitVector:
     bits: Tuple[Bit]
 
     @staticmethod
-    def new(name, size=8):
+    def new(name: str, size=8):
         return BitVector(bits=tuple(Bit(f"{name}{i}") for i in range(size)))
 
     @staticmethod
