@@ -1,3 +1,26 @@
+"""
+Using [Algebraic Normal Form](https://en.wikipedia.org/wiki/Algebraic_normal_form),
+we can represent any boolean expression as a sequence of expressions consisting
+only of AND operations that are all collectively XORed together.
+
+If we represent AND with `&` and XOR with `^` (following the C convention), then
+* NOT (~a) is (1 ^ a)
+* OR (a|b) is (a ^ b ^ a&b)
+
+This allows us to have a canonical representation of any boolean expression. If we
+sort by some stable key (in this case, just the string representation), we can
+ensure that any expression has exactly one unique simplest representation.
+
+Actually storing an expression is a 3-level tree, with a leaf node of `Bit`, an
+intermediate node of `And`, and root node of `Xor`. `Xor` is ommitted if absent,
+as is `And`, but a tree never has more than three layers. (`And` and `Xor` can have
+an unbounded number of children)
+
+Everything else is essentially rules for how trees are combined with various bit
+operations and simplified to a common canonical form. The internals are a bit
+convoluted, but the result as a clean interface.
+"""
+
 from collections import Counter
 from dataclasses import dataclass
 from typing import Tuple, Union
